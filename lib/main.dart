@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'quiz_brain.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
+QuizzBrain quizzBrain = QuizzBrain();
 void main() => runApp(Quizzler());
 
 class Quizzler extends StatelessWidget {
@@ -25,6 +28,60 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  List<Icon> scoreKeeper = [];
+  int rightAnswer = 0;
+  int wrongAnswer = 0;
+  void checkAnswer(bool userPickAnswer) {
+    bool correctAnswer = quizzBrain.getQuestionAnswer();
+    setState(() {
+      if (quizzBrain.isFinished() == true) {
+        Alert(
+          context: context,
+          title: 'Finished!',
+          desc: 'You\'ve reached the end of the quiz: '
+                  ' the correct answers is : ' +
+              rightAnswer.toString() +
+              ' ,the wrong answers is : ' +
+              wrongAnswer.toString(),
+          buttons: [
+            DialogButton(
+              color: Colors.green,
+              child: Text(
+                "COOL",
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+
+
+              },
+              width: 120,
+            )
+          ],
+        ).show();
+
+        quizzBrain.reset();
+
+        scoreKeeper = [];
+        rightAnswer = 0;
+        wrongAnswer = 0;
+      } else {
+        if (userPickAnswer == correctAnswer) {
+          scoreKeeper.add(Icon(
+            Icons.check,
+            color: Colors.green,
+          ));
+          rightAnswer++;
+        } else {
+          scoreKeeper.add(Icon(Icons.close, color: Colors.red));
+          wrongAnswer++;
+        }
+
+        quizzBrain.nextQuestion();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -37,7 +94,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
+                quizzBrain.getQuestionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -61,6 +118,7 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
+                checkAnswer(true);
                 //The user picked true.
               },
             ),
@@ -79,12 +137,19 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
+                checkAnswer(false);
+
                 //The user picked false.
               },
             ),
           ),
         ),
-        //TODO: Add a Row here as your score keeper
+        SizedBox(
+          height: 90,
+        ),
+        Row(
+          children: scoreKeeper,
+        )
       ],
     );
   }
